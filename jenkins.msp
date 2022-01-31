@@ -1,0 +1,29 @@
+node{
+    
+    def mavenHome = tool name: "maven 3.8.4"
+    
+    stage('checkout code'){
+    git branch: 'development', credentialsId: '54befc2c-c7a9-4f2e-a177-6851fe881a30',url: 'https://github.com/msp327/maven-web-application.git' 
+    }
+
+    stage('build project'){
+        sh "${mavenHome}/bin/mvn clean package"
+        
+        
+    }
+    
+    stage('for testing executing sonarqubr report'){
+        sh "${mavenHome}/bin/mvn sonar:sonar"
+        
+    }
+    stage('upload artifactory'){
+        sh "${mavenHome}/bin/mvn deploy"
+    }
+    stage('tomcat'){
+        sshagent(['37a4c7ca-901d-419a-8fa3-5336fcda0a76']) {
+
+    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.127.221.191:/opt/apache-tomcat-9.0.56/webapps/"
+
+    }
+    }
+}
